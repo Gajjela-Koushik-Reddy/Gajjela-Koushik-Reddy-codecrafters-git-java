@@ -1,10 +1,13 @@
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.security.MessageDigest;
+import java.util.HexFormat;
 import java.util.Scanner;
+import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
 
 public class Main {
@@ -64,30 +67,45 @@ public class Main {
 
         if (subCommand.equals("-w")) {
           String fileName = args[2];
-          File file = new File(fileName);
+          File currentDir = new File(".");
 
           // read contents of the file and make the hash
           try {
-            Scanner readFile = new Scanner(file);
-            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            File file = new File(currentDir, fileName);
+            FileInputStream readFile = new FileInputStream(file);
+            MessageDigest digest = MessageDigest.getInstance("SHA-1");
 
-            String fileContent = "blob" + file.length() + "\0" + readFile.nextLine();
+            // String fileContent = "blob" + file.length() + "\0" + readFile.nextLine();
+            digest.update("blob".getBytes());
+            digest.update(" ".getBytes());
+            digest.update(String.valueOf(file.length()).getBytes());
+            digest.update("\0".getBytes());
+            digest.update(readFile.readAllBytes());
 
-            String hashCode = digest.digest(fileContent.getBytes()).toString();
+
+            byte[] hashCodeByte = digest.digest();
+            String hashCode = HexFormat.of().formatHex(hashCodeByte);
             String writeFolderName = new StringBuffer(hashCode).substring(0, 2);
             String writeFileName = new StringBuffer(hashCode).substring(2);
 
             // write contents to file
             new File("./.git/objects", writeFolderName).mkdir();
-            File finalFile = new File("./.git/objects" + writeFolderName, writeFileName);
+            File finalFile = new File("./.git/objects/" + writeFolderName, writeFileName);
             
 
             finalFile.createNewFile();
-            Files.write(finalFile.toPath(), fileContent.getBytes());
+
+            DeflaterOutputStream writeFile = new DeflaterOutputStream(new FileOutputStream(finalFile));
+            writeFile.write("blob".getBytes());
+            writeFile.write(" ".getBytes());
+            writeFile.write(String.valueOf(file.length()).getBytes());
+            writeFile.write("\0".getBytes());
+            writeFile.write(readFile.readAllBytes());
 
             System.out.print(hashCode);
 
             readFile.close();
+            writeFile.close();
 
           } catch (Exception e) {
             throw (new RuntimeException(e));
