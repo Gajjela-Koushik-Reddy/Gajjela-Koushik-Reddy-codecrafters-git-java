@@ -74,13 +74,14 @@ public class Main {
             File file = new File(currentDir, fileName);
             FileInputStream readFile = new FileInputStream(file);
             MessageDigest digest = MessageDigest.getInstance("SHA-1");
+            byte[] fileContent = readFile.readAllBytes();
 
             // String fileContent = "blob" + file.length() + "\0" + readFile.nextLine();
             digest.update("blob".getBytes());
             digest.update(" ".getBytes());
             digest.update(String.valueOf(file.length()).getBytes());
             digest.update("\0".getBytes());
-            digest.update(readFile.readAllBytes());
+            digest.update(fileContent);
 
 
             byte[] hashCodeByte = digest.digest();
@@ -100,7 +101,7 @@ public class Main {
             writeFile.write(" ".getBytes());
             writeFile.write(String.valueOf(file.length()).getBytes());
             writeFile.write("\0".getBytes());
-            writeFile.write(readFile.readAllBytes());
+            writeFile.write(fileContent);
 
             System.out.print(hashCode);
 
