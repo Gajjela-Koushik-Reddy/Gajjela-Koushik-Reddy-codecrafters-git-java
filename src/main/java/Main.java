@@ -3,6 +3,7 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.security.MessageDigest;
 import java.util.Scanner;
 import java.util.zip.InflaterInputStream;
 
@@ -55,6 +56,42 @@ public class Main {
             reader.close();
           } catch (IOException e) {
             throw new RuntimeException(e);
+          }
+        }
+      }
+
+      case "hash-object" -> {
+        final String subCommand = args[1];
+
+        if (subCommand.equals("-w")) {
+          String fileName = args[2];
+          File file = new File(fileName);
+
+          // read contents of the file and make the hash
+          try {
+            Scanner readFile = new Scanner(file);
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+
+            String fileContent = "blob" + file.length() + "\0" + readFile.nextLine();
+
+            String hashCode = digest.digest(fileContent.getBytes()).toString();
+            String writeFolderName = new StringBuffer(hashCode).substring(0, 2);
+            String writeFileName = new StringBuffer(hashCode).substring(2);
+
+            // write contents to file
+            new File("./.git/objects", writeFolderName).mkdir();
+            File finalFile = new File("./.git/objects" + writeFolderName, writeFileName);
+            
+
+            finalFile.createNewFile();
+            Files.write(finalFile.toPath(), fileContent.getBytes());
+
+            System.out.print(hashCode);
+
+            readFile.close();
+
+          } catch (Exception e) {
+            throw (new RuntimeException(e));
           }
         }
       }
