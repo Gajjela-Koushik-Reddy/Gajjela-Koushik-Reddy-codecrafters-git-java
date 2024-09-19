@@ -5,7 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.security.MessageDigest;
+import java.util.ArrayList;
 import java.util.HexFormat;
+import java.util.List;
 import java.util.Scanner;
 import java.util.zip.DeflaterOutputStream;
 import java.util.zip.InflaterInputStream;
@@ -18,6 +20,7 @@ public class Main {
     // Uncomment this block to pass the first stage
 
     final String command = args[0];
+    final File CURRENT_DIRECTORY = new File(".");
 
     switch (command) {
       case "init" -> {
@@ -83,7 +86,6 @@ public class Main {
             digest.update("\0".getBytes());
             digest.update(fileContent);
 
-
             byte[] hashCodeByte = digest.digest();
             String hashCode = HexFormat.of().formatHex(hashCodeByte);
             String writeFolderName = new StringBuffer(hashCode).substring(0, 2);
@@ -92,7 +94,6 @@ public class Main {
             // write contents to file
             new File("./.git/objects", writeFolderName).mkdir();
             File finalFile = new File("./.git/objects/" + writeFolderName, writeFileName);
-            
 
             finalFile.createNewFile();
 
@@ -109,6 +110,39 @@ public class Main {
             writeFile.close();
 
           } catch (Exception e) {
+            throw (new RuntimeException(e));
+          }
+        }
+      }
+      case "ls-tree" -> {
+        final String subCommand = args[1];
+        if (subCommand.equals("--name-only")) {
+          String hashCode = args[2];
+          String folderName = new StringBuffer(hashCode).substring(0, 2);
+          String fileName = new StringBuffer(hashCode).substring(2);
+          File file = new File(CURRENT_DIRECTORY.toString() + "/.git/objects/" + folderName, fileName);
+
+          try {
+            InflaterInputStream decompressedFile = new InflaterInputStream(new FileInputStream(file));
+
+            int c;
+            final var decompressedContent = new StringBuilder();
+
+            while ((c = decompressedFile.read()) != -1) {
+              decompressedContent.append((char) c);
+            }
+
+            String[] allLines = decompressedContent.toString().split("\0");
+            ArrayList<String> allLinesArr = new ArrayList<>(List.of(allLines));
+            List<String> allContent = allLinesArr.subList(1, allLinesArr.size() - 1);
+
+            for (String line : allContent) {
+              String[] value = line.split(" ");
+              System.out.println(value[1]);
+            }
+
+            decompressedFile.close();
+          } catch (IOException e) {
             throw (new RuntimeException(e));
           }
         }
