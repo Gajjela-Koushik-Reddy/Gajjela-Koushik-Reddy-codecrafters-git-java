@@ -97,6 +97,8 @@ public class Main {
             ArrayList<String> allLinesArr = new ArrayList<>(List.of(allLines));
             List<String> allContent = allLinesArr.subList(1, allLinesArr.size() - 1);
 
+            System.out.println(allContent);
+
             for (String line : allContent) {
               String[] value = line.split(" ");
               System.out.println(value[1]);
@@ -116,7 +118,23 @@ public class Main {
           throw (new RuntimeException(e));
         }
       }
+      case "commit-tree" -> {
+        // $ ./your_program.sh commit-tree <tree_sha> -p <commit_sha> -m <message>
+        String treeSHA = args[1];
+        // String pFlag = args[2];
+        String commitSHA = args[3];
+        // String mFlag = args[4];
+        String message = args[5];
+
+        try {
+          byte[] hash = Utils.commitTree(treeSHA, commitSHA, message);
+          System.out.println(HexFormat.of().formatHex(hash));
+        } catch (Exception e) {
+          throw (new RuntimeException(e));
+        }
+      }
       default -> System.out.println("Unknown command: " + command);
     }
+
   }
 }
