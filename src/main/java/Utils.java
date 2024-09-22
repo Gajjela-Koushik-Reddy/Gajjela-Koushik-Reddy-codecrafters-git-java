@@ -18,8 +18,8 @@ import java.util.zip.DeflaterOutputStream;
  */
 public class Utils {
 
-    public static byte[] writeBlob(File CURRENT_DIRECTORY, String fileName) throws Exception {
-        File file = new File(CURRENT_DIRECTORY, fileName);
+    public static byte[] writeBlob(String filePath) throws Exception {
+        File file = new File(filePath);
 
         FileInputStream readFile = new FileInputStream(file);
         MessageDigest digest = MessageDigest.getInstance("SHA-1");
@@ -68,7 +68,7 @@ public class Utils {
         for (File file : noGitFiles) {
 
             if (file.isFile()) {
-                byte[] hash = writeBlob(CURRENT_DIRECTORY, file.getName());
+                byte[] hash = writeBlob(file.getPath());
                 buffer.write("100644".getBytes());
                 buffer.write(" ".getBytes());
                 buffer.write(file.getName().getBytes());
@@ -94,6 +94,10 @@ public class Utils {
 
         // calculate the dirHash
         MessageDigest message = MessageDigest.getInstance("SHA-1");
+        message.update("tree".getBytes());
+        message.update(" ".getBytes());
+        message.update(String.valueOf(data.length).getBytes());
+        message.update("\0".getBytes());
         message.update(data);
 
         byte[] digest = message.digest();

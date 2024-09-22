@@ -66,7 +66,7 @@ public class Main {
 
           // read contents of the file and make the hash
           try {
-            byte[] hashCode = Utils.writeBlob(CURRENT_DIRECTORY, fileName);
+            byte[] hashCode = Utils.writeBlob(CURRENT_DIRECTORY + "/" + fileName);
 
             System.out.print(HexFormat.of().formatHex(hashCode));
 
@@ -96,8 +96,6 @@ public class Main {
             String[] allLines = decompressedContent.toString().split("\0");
             ArrayList<String> allLinesArr = new ArrayList<>(List.of(allLines));
             List<String> allContent = allLinesArr.subList(1, allLinesArr.size() - 1);
-
-            System.out.println(allContent);
 
             for (String line : allContent) {
               String[] value = line.split(" ");
